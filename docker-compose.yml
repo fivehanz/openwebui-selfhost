@@ -2,8 +2,18 @@ networks:
   openwebui-nw:
     driver: bridge
 
-
 services:
+  ollama:
+    volumes:
+      - /usr/share/ollama/.ollama/:/root/.ollama/
+    container_name: ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
+    networks:
+      - openwebui-nw
+  
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
@@ -12,11 +22,9 @@ services:
     ports:
       - ${OPEN_WEBUI_PORT-53333}:8080
     environment:
-      - 'OLLAMA_BASE_URL=http://host.docker.internal:11434'
+      - 'OLLAMA_BASE_URL=http://ollama:11434'
       - 'WEBUI_SECRET_KEY='
       - 'DATABASE_URL=postgresql://user:password@postgres:5432/openwebui-db'
-    extra_hosts:
-      - host.docker.internal:host-gateway
     networks:
       - openwebui-nw
     restart: unless-stopped
